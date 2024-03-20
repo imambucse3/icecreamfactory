@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Employee List</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+<!--    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />-->
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<br> <br>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-5">
+            <h1 class="text-center">Product List</h1>
+            <div>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody id="productTable"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-2"></div>
+        <div class="col-5">
+            <div>
+                <h1 class="text-center">Create an product</h1>
+                <br>
+                <form id="productForm">
+                    <div class="form-group">
+                        <label for="nameInput">Product Name:</label>
+                        <input type="text" class="form-control" id="nameInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantityInput">Product Quantity:</label>
+                        <input type="text" class="form-control" id="quantityInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="unitInput">product Unit:</label>
+                        <input type="text" class="form-control" id="unitInput" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Handle form submission
+        $('#productForm').submit(function(event) {
+            event.preventDefault();
+            var name = $('#nameInput').val();
+            var quantity = $('#quantityInput').val();
+            var unit = $('#unitInput').val();
+            var productId = $('#productForm').data('id');
+
+            // Determine if we are creating a new product or updating an existing one
+            var url = '/api/products'; // Default URL for creating a new product
+            var method = 'POST'; // Default method for creating a new product
+
+            if (productId) {
+                // If productId exists, we are updating an existing product
+                console.log(productId)
+                url += '/' + productId;
+                method = 'PUT';
+            }
+            // Log the request type
+            console.log('Request Type:', method);
+
+            // Send AJAX request to save employee
+            $.ajax({
+                url: url, // Replace with your actual API endpoint
+                method: method,
+                data: JSON.stringify({ name: name, quantity: quantity, unit: unit}),
+                contentType: 'application/json',
+                success: function(data, method) {
+                    // Log the response data
+                    console.log('AJAX Response:', data, method);
+                    // Clear form inputs
+                    $('#nameInput').val('');
+                    $('#quantityInput').val('');
+                    $('#unitInput').val('');
+                    // Clear productId from form data attribute
+                    $('#productForm').removeData('id');
+                    // Fetch updated product list
+                    fetchProducts();
+                },
+                error: function(error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+
+        // Fetch and display employees on page load
+        fetchProducts();
+    });
+
+    function deleteProduct(id) {
+        console.log("Hi");
+        $.ajax({
+            url: '/api/products/' + id, // Replace with your actual API endpoint
+            method: 'DELETE',
+            contentType: 'application/json',
+            success: function() {
+                // Fetch updated employee list
+                fetchProducts();
+            },
+            error: function(error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
+    function fetchProducts() {
+        fetch('/api/products') // Replace '/api/employees' with your actual API endpoint
+            .then(response => {
+                // Check if the response status is ok
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                // Parse the JSON response
+                return response.json();
+            })
+            .then(data => {
+                const table = document.getElementById('productTable');
+                table.innerHTML = ''; // Clear existing table rows
+                data.forEach(product => {
+                    const row = document.createElement('tr');
+                    const idCell = document.createElement('td');
+                    const nameCell = document.createElement('td');
+                    const quantityCell = document.createElement('td');
+                    const unitCell = document.createElement('td');
+                    const actionCell = document.createElement('td');
+                    const deleteButton = document.createElement('button');
+                    const editButton = document.createElement('button');
+
+                    idCell.textContent = product.id;
+                    nameCell.textContent = product.name;
+                    quantityCell.textContent = product.quantity;
+                    unitCell.textContent = product.unit;
+                    deleteButton.textContent = 'Delete';
+                    editButton.textContent = 'Edit';
+
+                    deleteButton.classList.add('btn', 'btn-danger', 'btn-sm');
+                    editButton.classList.add('btn', 'btn-primary', 'btn-sm', 'mr-2');
+
+
+                    deleteButton.addEventListener('click', function() {
+                        console.log(product.id);
+                        deleteProduct(product.id);
+                    });
+
+                    editButton.addEventListener('click', function() {
+                        editProduct(product);
+                    });
+
+
+                    actionCell.appendChild(deleteButton);
+                    actionCell.appendChild(editButton);
+                    row.appendChild(idCell);
+                    row.appendChild(nameCell);
+                    row.appendChild(quantityCell);
+                    row.appendChild(unitCell);
+                    row.appendChild(actionCell);
+
+                    table.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    function editProduct(product) {
+        $('#nameInput').val(product.name);
+        $('#quantityInput').val(product.quantity);
+        $('#unitInput').val(product.unit);
+
+        // Store the product ID as a data attribute in the form for later use during update
+        $('#productForm').data('id', product.id);
+    }
+
+
+</script>
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>
+<div th:replace="fragments/footer :: footer"></div>

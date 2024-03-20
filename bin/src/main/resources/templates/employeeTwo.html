@@ -1,0 +1,233 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Employee List</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+<!--    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />-->
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-7">
+            <a class="btn btn-primary btn-lg" th:href="@{/product}">Go to Product Page</a>
+            <br> <br>
+            <a class="btn btn-primary btn-lg" th:href="@{/category}">Go to Category Page</a>
+            <h1 class="text-center">Employee List</h1>
+            <div>
+                <table  class="table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Phone</th>
+                        <th>Salary</th>
+                        <th>Type</th>
+                        <th>Increment Date</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody id="employeeTable"></tbody>
+                </table>
+            </div>
+        </div>
+<!--        <div class="col-2"></div>-->
+        <div class="col-5">
+            <div>
+                <h1 class="text-center">Create an employee</h1>
+                <br>
+                <form id="employeeForm">
+                    <div class="form-group">
+                        <label for="nameInput">Employee Name:</label>
+                        <input type="text" class="form-control" id="nameInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressInput">Employee Address:</label>
+                        <input type="text" class="form-control" id="addressInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneInput">Employee Phone:</label>
+                        <input type="text" class="form-control" id="phoneInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="salaryInput">Employee Salary:</label>
+                        <input type="text" class="form-control" id="salaryInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="employeeTypeInput">Employee Type:</label>
+                        <select class="form-control" id="employeeTypeInput">
+                            <option value="option1">Daily</option>
+                            <option value="option2">weekly</option>
+                            <option value="option3">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="incrementedDateInput">Incremented Date:</label>
+                        <input type="date" class="form-control" id="incrementedDateInput" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Handle form submission
+        $('#employeeForm').submit(function(event) {
+            event.preventDefault();
+            var name = $('#nameInput').val();
+            var address = $('#addressInput').val();
+            var phone = $('#phoneInput').val();
+            var salary = $('#salaryInput').val();
+            var employeeTypeInput = $('#employeeTypeInput').val();
+            var incrementedDateInput = $('#incrementedDateInput').val();
+
+            var employeeId = $('#employeeForm').data('employeeId');
+            // Determine if we are creating a new employee or updating an existing one
+            var url = '/api/employees'; // Default URL for creating a new employee
+            var method = 'POST'; // Default method for creating a new employee
+
+            if (employeeId) {
+                // If employeeId exists, we are updating an existing employee
+                console.log(employeeId)
+                url += '/' + employeeId;
+                method = 'PUT';
+            }
+            // Log the request type
+            console.log('Request Type:', method);
+
+            // Send AJAX request to save employee
+            $.ajax({
+                url: url, // Replace with your actual API endpoint
+                method: method,
+                data: JSON.stringify({ employeeName: name, employeeAddress: address, employeePhone:phone, employeeSalary: salary, employementType:employeeTypeInput, lastIncrementDate:incrementedDateInput}),
+                contentType: 'application/json',
+                success: function() {
+                    // Clear form inputs
+                    $('#nameInput').val('');
+                    $('#addressInput').val('');
+                    $('#phoneInput').val('');
+                    $('#salaryInput').val('');
+                    $('#employeeTypeInput').val('');
+                    $('#incrementedDateInput').val('');
+
+                    // Clear productId from form data attribute
+                    $('#employeeForm').removeData('employeeId');
+
+                    // Fetch updated employee list
+                    fetchEmployees();
+                },
+                error: function(error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+
+        // Fetch and display employees on page load
+        fetchEmployees();
+    });
+
+    function deleteEmployee(employeeId) {
+        console.log("Hi");
+        $.ajax({
+            url: '/api/employees/' + employeeId, // Replace with your actual API endpoint
+            method: 'DELETE',
+            success: function() {
+                // Fetch updated employee list
+                fetchEmployees();
+            },
+            error: function(error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
+    function fetchEmployees() {
+        fetch('/api/employees') // Replace '/api/employees' with your actual API endpoint
+            .then(response => {
+                // Check if the response status is ok
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                // Parse the JSON response
+                return response.json();
+            })
+            .then(data => {
+                const table = document.getElementById('employeeTable');
+                table.innerHTML = ''; // Clear existing table rows
+                data.forEach(employee => {
+                    const row = document.createElement('tr');
+                    const idCell = document.createElement('td');
+                    const nameCell = document.createElement('td');
+                    const addressCell = document.createElement('td');
+                    const phoneCell = document.createElement('td');
+                    const salaryCell = document.createElement('td');
+                    const typeCell = document.createElement('td');
+                    const incrementDateCell = document.createElement('td');
+                    const actionCell = document.createElement('td');
+                    const deleteButton = document.createElement('button');
+                    const editButton = document.createElement('button');
+
+                    idCell.textContent = employee.employeeId;
+                    nameCell.textContent = employee.employeeName;
+                    addressCell.textContent = employee.employeeAddress;
+                    phoneCell.textContent = employee.employeePhone;
+                    salaryCell.textContent = employee.employeeSalary;
+                    typeCell.textContent = employee.employementType;
+                    incrementDateCell.textContent = employee.lastIncrementDate;
+                    editButton.textContent = 'Edit';
+                    deleteButton.textContent = 'Delete';
+
+                    editButton.classList.add('btn', 'btn-primary', 'btn-sm', 'mr-2');
+                    deleteButton.classList.add('btn', 'btn-danger', 'btn-sm');
+
+                    deleteButton.addEventListener('click', function() {
+                        console.log(employee.employeeId);
+                        deleteEmployee(employee.employeeId);
+                    });
+                    editButton.addEventListener('click', function() {
+                        editEmployee(employee);
+                    });
+
+                    actionCell.appendChild(deleteButton);
+                    actionCell.appendChild(editButton);
+
+                    row.appendChild(idCell);
+                    row.appendChild(nameCell);
+                    row.appendChild(addressCell);
+                    row.appendChild(phoneCell);
+                    row.appendChild(salaryCell);
+                    row.appendChild(typeCell);
+                    row.appendChild(incrementDateCell);
+                    row.appendChild(actionCell);
+
+                    table.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function editEmployee(employee) {
+        $('#nameInput').val(employee.employeeName);
+        $('#addressInput').val(employee.employeeAddress);
+        $('#phoneInput').val(employee.employeePhone);
+        $('#salaryInput').val(employee.employeeSalary);
+        $('#employeeTypeInput').val(employee.employementType);
+        $('#incrementedDateInput').val(employee.lastIncrementDate);
+
+        // Store the employee ID as a data attribute in the form for later use during update
+        $('#employeeForm').data('employeeId', employee.employeeId);
+    }
+
+
+</script>
+
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <title>Order List</title>
+    <div th:replace="fragments/header :: header-css"/>
+    <head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<br><br>
+<div class="container mt-5">
+    <h1 class="text-center">Order List</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Shipping Address</th>
+            <th>Payment Method</th>
+            <th>Total Price</th>
+            <th>Order Date</th>
+            <!--            <th>Details</th>-->
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="order : ${orders}">
+            <td th:text="${order.id}"></td>
+            <td th:text="${order.shippingAddress}"></td>
+            <td th:text="${order.paymentMethod}"></td>
+            <td th:text="${order.totalPrice}"></td>
+            <td th:text="${order.orderDate}"></td>
+            <!--            <td><a th:href="@{/order/details/{id}(id=${order.id})}">View Details</a></td>-->
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+<div th:replace="fragments/footer :: footer"></div>

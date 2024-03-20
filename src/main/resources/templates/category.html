@@ -1,0 +1,183 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Category List</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+<!--    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />-->
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div th:replace="fragments/header"></div>
+<br><br>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-5">
+            <h1 class="text-center">Category List</h1>
+            <div>
+                <table  class="table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody id="categoryTable"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-2"></div>
+        <div class="col-5">
+            <div>
+                <h1 class="text-center">Create an Category</h1>
+                <br>
+                <form id="categoryForm">
+                    <div class="form-group">
+                        <label for="nameInput">Category Name:</label>
+                        <input type="text" class="form-control" id="nameInput" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="descriptionInput">Category Description:</label>
+                        <input type="text" class="form-control" id="descriptionInput" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Handle form submission
+        $('#categoryForm').submit(function(event) {
+            event.preventDefault();
+            var name = $('#nameInput').val();
+            var description = $('#descriptionInput').val();
+            var categoryId = $('#categoryForm').data('id');
+
+            // Determine if we are creating a new category or updating an existing one
+            var url = '/api/categories'; // Default URL for creating a new category
+            var method = 'POST'; // Default method for creating a new category
+
+            if (categoryId) {
+                // If categoryId exists, we are updating an existing category
+                console.log(categoryId)
+                url += '/' + categoryId;
+                method = 'PUT';
+            }
+
+            // Send AJAX request to save employee
+            $.ajax({
+                url: url, // Replace with your actual API endpoint
+                method: method,
+                data: JSON.stringify({ name: name, description: description}),
+                contentType: 'application/json',
+                success: function() {
+                    // Clear form inputs
+                    $('#nameInput').val('');
+                    $('#descriptionInput').val('');
+
+                    // Log the request type
+                    console.log('Request Type:', method);
+                    // Clear categoryId from form data attribute
+                    $('#categoryForm').removeData('id');
+
+                    // Fetch updated employee list
+                    fetchCategories();
+                },
+                error: function(error) {
+                    console.error('Error:', error);
+                }
+            });
+        });
+
+        // Fetch and display employees on page load
+        fetchCategories();
+    });
+
+    function deleteCategories(categoryId) {
+        console.log("Hi");
+        $.ajax({
+            url: '/api/categories/' + categoryId, // Replace with your actual API endpoint
+            method: 'DELETE',
+            success: function() {
+                // Fetch updated employee list
+                fetchCategories();
+            },
+            error: function(error) {
+                console.error('Error:', error);
+            }
+        });
+    }
+
+    function fetchCategories() {
+        fetch('/api/categories') // Replace '/api/employees' with your actual API endpoint
+            .then(response => {
+                // Check if the response status is ok
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                // Parse the JSON response
+                return response.json();
+            })
+            .then(data => {
+                const table = document.getElementById('categoryTable');
+                table.innerHTML = ''; // Clear existing table rows
+                data.forEach(category => {
+                    const row = document.createElement('tr');
+                    const idCell = document.createElement('td');
+                    const nameCell = document.createElement('td');
+                    const descriptionCell = document.createElement('td');
+                    const actionCell = document.createElement('td');
+                    const deleteButton = document.createElement('button');
+                    const editButton = document.createElement('button');
+
+                    idCell.textContent = category.id;
+                    nameCell.textContent = category.name;
+                    descriptionCell.textContent = category.description;
+                    editButton.textContent = 'Edit';
+                    deleteButton.textContent = 'Delete';
+
+                    deleteButton.classList.add('btn', 'btn-danger', 'btn-sm');
+                    editButton.classList.add('btn', 'btn-primary', 'btn-sm', 'mr-2');
+
+                    deleteButton.addEventListener('click', function() {
+                        console.log(category.id);
+                        deleteCategories(category.id);
+                    });
+                    editButton.addEventListener('click', function() {
+                        editCategory(category);
+                    });
+
+                    actionCell.appendChild(deleteButton);
+                    actionCell.appendChild(editButton);
+
+                    row.appendChild(idCell);
+                    row.appendChild(nameCell);
+                    row.appendChild(descriptionCell);
+                    row.appendChild(actionCell);
+
+                    table.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function editCategory(category) {
+        $('#nameInput').val(category.name);
+        $('#descriptionInput').val(category.description);
+
+        // Store the category ID as a data attribute in the form for later use during update
+        $('#categoryForm').data('id', category.id);
+    }
+
+</script>
+
+
+<!--<div th:replace="fragments/footer :: footer"></div>-->
+</body>
+</html>

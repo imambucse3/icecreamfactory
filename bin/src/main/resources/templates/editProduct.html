@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Update Product</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+<!--    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />-->
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div th:replace="fragments/header"></div>
+<br /><br /><br />
+<div class="container mt-5">
+    <h1 class="text-center">Update Product</h1>
+    <form th:action="@{/update/product/{id}(id=${product.id})}" th:object="${product}" method="post">
+        <div class="form-group mb-3">
+            <label class="form-label" for="name">Name:</label>
+            <input  class="form-control" type="text" id="name" name="name" th:field="*{name}" placeholder="Enter name" required />
+            <p th:errors = "*{name}" class="text-danger"
+               th:if="${#fields.hasErrors('name')}"></p>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label" for="price">Price:</label>
+            <input  class="form-control" type="number" id="price" name="price"  th:field="*{price}" step="0.01" required />
+            <p th:errors = "*{price}" class="text-danger"
+               th:if="${#fields.hasErrors('price')}"></p>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label" for="quantity">Quantity:</label>
+            <input  class="form-control" type="text" id="quantity" name="quantity" th:field="*{quantity}" required />
+            <p th:errors = "*{quantity}" class="text-danger"
+               th:if="${#fields.hasErrors('quantity')}"></p>
+        </div>
+
+        <div class="form-group mb-3">
+            <label class="form-label" for="unit">Unit:</label>
+            <select   class="form-control" id="unit" name="unit" th:field="*{unit}" required>
+                <option value="GM" th:selected="${product.unit == 'GM'}">Gram</option>
+                <option value="KG" th:selected="${product.unit == 'KG'}">Kilogram</option>
+                <option value="L"  th:selected="${product.unit == 'L'}">Liter</option>
+                <option value="PC" th:selected="${product.unit == 'PC'}">Piece</option>
+                <!-- Add more unit options as needed -->
+            </select>
+            <p th:errors = "*{unit}" class="text-danger"
+               th:if="${#fields.hasErrors('unit')}"></p>
+        </div>
+
+<!--        <div class="form-group mb-3">-->
+<!--            <label class="form-label" for="categories">Categories:</label>-->
+<!--            <select  class="form-control" id="categories" name="categories" th:field="*{categories}" multiple="multiple" required>-->
+<!--                <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"-->
+<!--                      ></option>-->
+<!--            </select>-->
+<!--&lt;!&ndash;            th:checked="${product.categories.contains(category)}"&ndash;&gt;-->
+<!--&lt;!&ndash;            th:style="${product.categories.contains(category) ? 'background-color: yellow;' : ''}"&ndash;&gt;-->
+<!--            <p th:errors = "*{categories}" class="text-danger"-->
+<!--               th:if="${#fields.hasErrors('categories')}"></p>-->
+<!--        </div>-->
+
+        <button type="submit">Update Product</button>
+    </form>
+    <br> <br> <br>
+    <a class="btn btn-success" th:href="@{/products/list}">Back to product List</a>
+</div>
+</body>
+</html>
+<div th:replace="fragments/footer :: footer"></div>

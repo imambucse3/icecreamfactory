@@ -1,0 +1,97 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <div th:replace="fragments/header :: header-css"/>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<br> <br>
+<div class="container mt-5">
+    <div th:if="${param.success}">
+        <div class="alert alert-info">
+            You have successfully save the information!
+        </div>
+    </div>
+    <div th:if="${param.danger}">
+        <div class="alert alert-danger">
+            User not found with this ID!
+        </div>
+    </div>
+    <div class="row col-md-10">
+        <h2>List of Registered Users</h2>
+    </div>
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Roles</th>
+            <th sec:authorize="hasAnyRole('ROLE_ADMIN')">Edit</th>
+<!--            <th>Delete</th>-->
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each = "user : ${users}">
+            <td th:text = "${user.firstName}"></td>
+            <td th:text = "${user.lastName}"></td>
+            <td th:text = "${user.email}"></td>
+            <td>
+                <ul>
+                    <li th:each="role : ${user.roles}" th:text="${role.name}"></li>
+                </ul>
+            </td>
+            <td sec:authorize="hasAnyRole('ROLE_ADMIN')">
+                <a th:href="@{/edit/user/{id}(id=${user.id})}" class="btn btn-primary edit-btn">Edit</a>
+            </td>
+<!--            <td>-->
+<!--&lt;!&ndash;                <a th:if="${user.id != null}" th:href="@{'/users/delete/' + ${user.id}}" th:userTitle="${user.firstName}" id="btnDelete"&ndash;&gt;-->
+<!--&lt;!&ndash;                   title="Delete this user" class="fa-regular fa-trash-can icon-dark btn-delete">Delete</a>&ndash;&gt;-->
+<!--&lt;!&ndash;                <a th:href="@{/users/delete/ (id=${user.id})}" class="btn btn-danger">Delete</a>&ndash;&gt;-->
+<!--                <a class="btn btn-danger btn-sm" th:href="@{'/users/delete?userId=' + ${user.id}}">Delete</a>-->
+<!--                                </td>-->
+                            </tr>
+                            </tbody>
+                        </table>
+                        <a sec:authorize="hasAnyRole('ROLE_ADMIN')" class="btn btn-success"  th:href="@{/register}">Add User</a>
+                    </div>
+
+                    <div class="modal fade text-center" id="confirmModal">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Delete Confirmation</h5>
+                                    <button type="button" class="close" data-dismiss="modal">
+                                        <span aria-hidden="true">×</span>
+                                    </button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <span id="confirmText"></span>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <a type="button" id="yesBtn" class="btn btn-danger">Yes</a>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $(".btn-delete").on("click", function (e) {
+                                e.preventDefault();
+                                link = $(this);
+
+                                userTitle = link.attr("userTitle");
+                                $("#yesBtn").attr("href", link.attr("href"));
+                                $("#confirmText").html("Do you want to delete the User \<strong\>" + userTitle + "\<\/strong\>?");
+                                $("#confirmModal").modal();
+                            });
+                        });
+                    </script>
+                    </body>
+                    </html>
+<div th:replace="fragments/footer :: footer"></div>

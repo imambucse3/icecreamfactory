@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Cart</title>
+    <!-- Add Bootstrap CSS link -->
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+<!--    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />-->
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+<div th:replace="fragments/header"></div>
+<br><br>
+<div class="container mt-5">
+    <h1 class="text-ceneter">Cart</h1>
+    <div th:if="${notavailableProduct}" class="alert alert-danger">
+        <p th:text="${notavailableProduct}">.</p>
+    </div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+            <th>Remove</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Iterate through the cartItems and display cart item details -->
+        <tr th:each="cartItem : ${cartItems}">
+            <td th:text="${cartItem.product.name}"></td>
+            <td th:text="${cartItem.product.price}"></td>
+            <td>
+                <!-- Display the current quantity -->
+                <span  class="badge badge-primary" th:text="${cartItem.quantity}"></span>
+
+                <!-- Button to increase the quantity -->
+                <form th:action="@{/cart/increase}" method="post" class="d-inline">
+                    <input type="number" min="1" value="1" name="quantity" placeholder="Increase quantity"/>
+                    <input type="hidden" name="quantityOne" value="1" />
+                    <input type="hidden" name="cartItemId" th:value="${cartItem.id}" />
+                    <input type="hidden" name="productId" th:value="${cartItem.product.id}" />
+                    <button type="submit" class="btn btn-success btn-sm ml-2">Increase</button>
+                </form>
+                <br> <br>
+
+                <!-- Button to decrease the quantity -->
+                &nbsp; &nbsp;<form th:action="@{/cart/decrease}" method="post" class="d-inline">
+                    <input type="number" name="quantity"  min="1" value="1" placeholder="Decrease quantity" width="10px"/>
+                    <input type="hidden" name="quantityOne" value="1" />
+                    <input type="hidden" name="cartItemId" th:value="${cartItem.id}" />
+                    <input type="hidden" name="productId" th:value="${cartItem.product.id}" />
+                    <button type="submit" class="btn btn-warning btn-sm ml-2">Decrease</button>
+                </form>
+            </td>
+            <td th:text="${cartItem.getTotalPrice()}"></td>
+            <td>
+                <a class="btn btn-danger btn-sm" th:href="@{'/cart/remove?cartItemId=' + ${cartItem.id}}">Remove</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+<!--    <p class="lead">Total Quantity: <span th:text="${cartItems. totalQuantity}"></span></p>-->
+    <p class="lead">Total Price: Taka = <span th:text="${totalPrice}"></span></p>
+    <a class="btn btn-success"  th:href="@{/products/list}">Back to Product List</a>
+    <br> <br>
+    <a class="btn btn-success" th:href="@{/checkout}">Checkout</a>
+</div>
+
+<!-- Add Bootstrap JS and jQuery scripts -->
+<script th:src="@{/webjars/jquery/3.6.0/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/5.3.0/js/bootstrap.min.js}"></script>
+</body>
+</html>
+<div th:replace="fragments/footer :: footer"></div>

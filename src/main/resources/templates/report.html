@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Product</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+</head>
+<body>
+
+<div th:replace="fragments/header"></div>
+<br /><br /><br />
+<h1>Production Data</h1>
+<table id="productionTable" class="display">
+    <thead>
+        <tr>
+            <th>Production Date</th>
+            <th>Product</th>
+            <th>Production Quantity</th>
+            <th>Production Cost</th>
+            <th>Cost Per Product</th>
+            <th>Selling Price</th>
+            <th>Profit</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<button id="downloadCsv">Download CSV</button>
+
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+<script>
+    $(document).ready(function () {
+        var table = $('#productionTable').DataTable({
+            ajax: {
+                url: '/getReport', // Replace with your actual URL to fetch data
+                dataSrc: ''
+            },
+            columns: [
+                { data: 'production_date' },
+                { data: 'product' },
+                { data: 'production_quantity' },
+                { data: 'production_cost' },
+                { data: 'cost_per_product' },
+                { data: 'selling_price' },
+                { data: 'profite' } // Corrected typo in 'profit'
+            ]
+        });
+
+        $('#downloadCsv').on('click', function () {
+            var data = table.data().toArray();
+            var csv = Papa.unparse(data);
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement("a");
+
+            if (link.download !== undefined) {
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "production_data.csv");
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+    });
+</script>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

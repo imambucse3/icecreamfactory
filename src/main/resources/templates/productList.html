@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<title>Product List</title>
+<!--<link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />-->
+<!--&lt;!&ndash;<link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />&ndash;&gt;-->
+<!--<script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>-->
+<!--<script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>-->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0-alpha3/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+<script defer src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script defer src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script defer src="https://cdn.datatables.net/1.13.5/js/dataTables.bootstrap5.min.js"></script>
+<script defer src="/javascript/pagination.js"></script>
+<head>
+    <title>Sales Product List</title>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<br> <br>
+<div class="container mt-5">
+    <h1 class="text-center">Sales Product List</h1>
+    <div th:if="${param.success}">
+        <div class="alert alert-info">
+            Product updated successfully!
+        </div>
+    </div>
+    <div th:if="${param.danger}">
+        <div class="alert alert-info">
+            Product not found with this id.
+        </div>
+    </div>
+<!--    <form th:action="@{/products/search}" method="get" class="form-inline">-->
+<!--        <div class="input-group">-->
+<!--            <input type="text" name="keyword" th:value="${keyword}" class="form-control" placeholder="Search by product name" size="50">-->
+<!--            <div class="input-group-append">-->
+<!--                <button type="submit" class="btn btn-info">Search</button>-->
+<!--                <button type="reset" class="btn btn-secondary">Reset</button>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </form>-->
+    <table id="example" class="table table-bordered table-hover">
+        <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Unit</th>
+            <th>Categories</th>
+            <th sec:authorize="hasAnyRole('ROLE_ADMIN')">Product Type</th>
+            <th sec:authorize="hasAnyRole('ROLE_ADMIN')">Created Date</th>
+            <th sec:authorize="hasAnyRole('ROLE_ADMIN')">Updated Date</th>
+            <th>Add to Cart</th>
+            <th sec:authorize="hasAnyRole('ROLE_ADMIN')">Edit</th>
+            <!-- Add more columns as needed -->
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Iterate through the productList and display product information -->
+        <tr th:each="product : ${products}">
+            <td th:text="${product.id}"></td>
+            <td th:text="${product.name}"></td>
+            <td th:text="${product.price}"></td>
+            <td th:text="${product.quantity}"></td>
+            <td th:text="${product.unit}"></td>
+            <td>
+                <ul>
+                    <li th:each="category : ${product.getCategories()}" th:text="${category.name}"></li>
+                </ul>
+            </td>
+            <td sec:authorize="hasAnyRole('ROLE_ADMIN')" th:text="${product.productType}"></td>
+            <td sec:authorize="hasAnyRole('ROLE_ADMIN')" th:text="${product.createdDate}"></td>
+            <td sec:authorize="hasAnyRole('ROLE_ADMIN')" th:text="${product.updatedDated}"></td>
+            <td>
+<!--                <a th:href="@{'/cart/add?productId=' + ${product.id} + '&quantity=1'}">Add to Cart</a>-->
+                <form th:action="@{/cart/add}" method="post">
+                    <input type="hidden" name="productId" th:value="${product.id}" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
+                </form>
+            </td>
+            <td sec:authorize="hasAnyRole('ROLE_ADMIN')">
+                <a th:href="@{/edit/product/{id}(id=${product.id})}" class="btn btn-primary edit-btn">Edit</a>
+            </td>
+            <!-- Add more columns as needed -->
+        </tr>
+        </tbody>
+    </table>
+    <a class="btn btn-success"  sec:authorize="hasRole('ADMIN')" th:href="@{/products/form}">Add Product</a>
+</div>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+</body>
+</html>
+
+<div th:replace="fragments/footer :: footer"></div>

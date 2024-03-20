@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Product</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
+<!--    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />-->
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+</head>
+<body>
+	  <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .formContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333333;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        #quantityInputs {
+            margin-top: 15px;
+        }
+
+        #quantityInputs input[type="text"] {
+            width: calc(100% - 20px);
+            margin-bottom: 10px;
+        }
+    </style>
+<div th:replace="fragments/header"></div>
+<br /><br /><br />
+ <h2>Add Production</h2>
+    <div class="formContainer">
+        <form id="addProductionForm">
+            <label for="name">Product Name:</label><br>
+            <select id="productName" name="productName">
+                <!-- Options for dynamic product name population -->
+            </select><br><br>
+            
+            <label for="ProductionQuantity">Production Quantity:</label><br>
+            <input type="number" id="ProductionQuantity" name="ProductionQuantity"><br><br>
+            
+            <label for="ingredients">Ingredients:</label><br>
+            <select name="ingredients[]" multiple id="ingredientSelect">
+                <!-- Options for dynamic ingredient population -->
+            </select>
+
+            <div id="quantityInputs"></div><br><br>
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            fetchAllProductName();
+            fetchAllIngredient();
+        });
+
+        function fetchAllProductName() {
+            $.ajax({
+                type: "GET",
+                url: "/fetchAllIngridient",
+                success: function (response) {
+    var productNameSelect = $('#productName');
+    response.forEach(function (product) {
+        if (product.productType === "SALES") {
+            var option = $('<option>');
+            option.val(product.id); // Use product ID as the option value
+            option.text(product.name);
+            productNameSelect.append(option);
+        }
+    });
+},
+
+                error: function (xhr, status, error) {
+                    console.error('Error fetching product names:', error);
+                }
+            });
+        }
+
+        function fetchAllIngredient() {
+            $.ajax({
+                type: "GET",
+                url: "/fetchAllIngridient",
+                success: function (response) {
+                    var selectBox = $('#ingredientSelect');
+                    response.forEach(function (ingredient) {
+                        if (ingredient.productType === "PURCHASE") {
+                            var option = $('<option>');
+                            option.val(ingredient.id);
+                            option.text(ingredient.name);
+                            selectBox.append(option);
+                        }
+                    });
+
+                    selectBox.on('change', function () {
+                        $('#quantityInputs').empty();
+                        $(this).find('option:selected').each(function () {
+                            var ingredientId = $(this).val();
+                            var ingredientName = $(this).text();
+                            var inputField = $('<input>');
+                            inputField.attr({
+                                type: 'text',
+                                name: 'quantities[' + ingredientId + ']',
+                                placeholder: 'Quantity for ' + ingredientName
+                            });
+                            $('#quantityInputs').append(inputField).append('<br><br>');
+                        });
+                    }).change();
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching ingredients:', error);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $('#addProductionForm').submit(function (event) {
+                event.preventDefault();
+                
+                var ingredientQuantities = [];
+                $('#quantityInputs input').each(function () {
+                    var ingredientId = $(this).attr('name').replace('quantities[', '').replace(']', '');
+                    var quantity = $(this).val();
+                    ingredientQuantities.push(ingredientId + ':' + quantity);
+                });
+                
+                var productionData = {
+                    name: $('#productName').val(),
+                    production_quantity: $('#ProductionQuantity').val(),
+                    ingradiant_quentity: ingredientQuantities.join(', ')
+                };
+                
+                $.ajax({
+                    type: 'POST',
+                    url: '/insertProduction',
+                    contentType: 'application/json',
+                    data: JSON.stringify(productionData),
+                    success: function (response) {
+                        alert('Production added successfully!');
+                        $('#addProductionForm')[0].reset();
+                    },
+                    error: function (xhr, status, error) {
+                        alert('Error adding production: ' + error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+<div th:replace="fragments/footer :: footer"></div>
